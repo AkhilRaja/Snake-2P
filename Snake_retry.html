@@ -1,0 +1,546 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Untitled Document</title>
+</head>
+
+<body>
+<canvas id="mycanvas" width="840" height="680" ></canvas>
+
+<script>
+var g_Canvas = document.getElementById("mycanvas");
+var g_ctxt = g_Canvas.getContext("2d");
+
+
+var g_speed_Snake1=5;
+var g_speed_Snake2=5;
+var g_time=0;
+var g_kill_1=0;
+var g_kill_2=0;
+
+var initial_x=new Array();
+var initial_y=new Array();
+
+initial_x[1]=100;
+initial_y[1]=100;
+initial_x[2]=200;
+initial_y[2]=200;
+
+var g_Game_Screen_width=640;
+var g_Game_Screen_height=480;
+function snake(s_no,key_left,key_up,key_right,key_down){
+	this.X=new Array();
+	this.Y=new Array();
+	this.No_Nodes=50;	
+	this.Size_of_node=10;
+	this.visible_nodes=5;
+	
+	this.g_move_left= false;
+	this.g_move_up =  false;
+	this.g_move_right=false;
+	this.g_move_down= false;
+
+	this.eat_Food=0;
+	
+	this.initialize_Positions = function(){
+		var l_i=0;
+		for(l_i=0;l_i<(this.No_Nodes*this.Size_of_node);l_i++)
+		{
+			this.X[l_i]=initial_x[s_no]+(l_i);
+			this.Y[l_i]=initial_y[s_no]+(l_i)
+		}
+	}
+	
+	this.Set_movement_true= function(l_key){
+		if(l_key==key_left)
+			this.g_move_left =  true;
+		if(l_key==key_up)
+			this.g_move_up =    true;
+		if(l_key==key_right)
+			this.g_move_right = true;
+		if(l_key==key_down)
+			this.g_move_down  = true;
+	}
+	
+	this.Set_movemet_false= function(l_key){
+		if(l_key==key_left)
+			this.g_move_left =  false;
+		if(l_key==key_up)
+			this.g_move_up  =   false;
+		if(l_key==key_right)
+			this.g_move_right = false;
+		if(l_key==key_down)
+			this.g_move_down  = false;
+	}
+	
+	this.update_Head = function(){
+		var l_head=0;
+		
+		if(this.g_move_left)
+		{
+			this.X[l_head]-=1;
+		}
+		if(this.g_move_up)
+		{
+			this.Y[l_head]-=1;
+		}
+		if(this.g_move_right)
+		{
+			this.X[l_head]+=1;
+		}
+		if(this.g_move_down)
+		{
+			this.Y[l_head]+=1;
+		}
+			
+	}
+	
+	this.Update_Nodes = function(){
+		var l_i=0;
+		if(this.g_move_left||this.g_move_right||this.g_move_up||this.g_move_down)
+		for(l_i=(this.No_Nodes*this.Size_of_node);l_i>0;l_i--)
+		{
+			this.X[l_i] = this.X[l_i-1];
+			this.Y[l_i] = this.Y[l_i-1];	
+			
+		}
+	}
+	
+	this.Draw_Snake = function(){
+		var l_i=0;	
+		for(l_i=0;l_i<(this.visible_nodes*this.Size_of_node);l_i++)
+		{
+			if(l_i==0)
+			{
+				g_ctxt.fillStyle = "rgb(0,0,0)";
+				g_ctxt.fillRect(this.X[l_i],this.Y[l_i],this.Size_of_node,this.Size_of_node);
+			}
+			else if(l_i%10==0)
+			{
+				if(s_no==1)
+				{
+				g_ctxt.fillStyle = "rgb(220,20,60)";
+				}
+				else {
+					g_ctxt.fillStyle = "rgb(0,0,150)";
+				}
+				g_ctxt.strokeRect(this.X[l_i],this.Y[l_i],this.Size_of_node,this.Size_of_node);
+				g_ctxt.fillRect(this.X[l_i],this.Y[l_i],this.Size_of_node,this.Size_of_node);
+			}
+		}
+	}
+
+
+
+}
+
+function Set_Move_True(l_key) {
+		Snake_1.Set_movement_true(l_key.keyCode);
+		Snake_2.Set_movement_true(l_key.keyCode);
+		
+	}
+	
+function Set_Move_False(l_key) {
+		Snake_1.Set_movemet_false(l_key.keyCode);
+		Snake_2.Set_movemet_false(l_key.keyCode);
+	}
+	
+
+
+function Prepare_Background_Game(){
+	g_ctxt.clearRect(0,0,640,480);
+	
+	
+	var my_gradient=g_ctxt.createLinearGradient(0,0,640,480);
+	my_gradient.addColorStop(0,"rgb(240,255,240)");
+	my_gradient.addColorStop(0.5,"rgb(255,255,204)");
+	my_gradient.addColorStop(1,"rgb(238,232,170)");
+
+	g_ctxt.fillStyle=my_gradient;
+	g_ctxt.fillRect(0,0,640,480);
+	g_ctxt.strokeRect(0,0,640,480);
+}
+	
+	
+var Snake_1 = new snake(1,37,38,39,40);	
+var Snake_2 = new snake(2,65,87,68,83);	
+
+
+function Initialize(){
+	Snake_1.initialize_Positions();	
+	Snake_2.initialize_Positions();	
+}
+	
+Initialize();	
+
+
+
+function Food_Snake(){
+	this.size_Food=Snake_1.Size_of_node;
+	this.No_Food=10;
+	this.No_Visible_Food=3;
+	
+	this.id = new Array(); 
+	this.X  = new Array();
+	this.Y  = new Array();
+	this.Eat= new Array();
+	
+	
+	this.Initialize = function(){
+		var l_i;	
+			for(l_i=0;l_i<this.No_Food;l_i++)
+			{
+				this.id[l_i]=Math.floor(Math.random()*8)+1;
+				this.X[l_i] =Math.floor(Math.random()*(g_Game_Screen_width-this.size_Food))+this.size_Food;
+				this.Y[l_i] =Math.floor(Math.random()*(g_Game_Screen_height-this.size_Food))+this.size_Food;
+				this.Eat[l_i]=false;
+			}
+	}
+	
+	this.Randomize_Position = function() {
+		var l_i=0;
+		for(l_i=0;l_i<this.No_Food;l_i++)
+		{
+			this.Eat[l_i]=false;
+			this.id[l_i]=Math.floor(Math.random()*8)+1;
+			this.X[l_i] =Math.floor(Math.random()*(g_Game_Screen_width-this.size_Food-50))+this.size_Food;
+			this.Y[l_i] =Math.floor(Math.random()*(g_Game_Screen_height-this.size_Food-50))+this.size_Food;
+		}
+	}
+	
+	this.Draw_Food_Tinterval = function(){
+		var l_i=0;
+		for(l_i=0;l_i<this.No_Visible_Food;l_i++)
+		{
+			if(this.Eat[l_i]==false)
+			{
+				
+				switch(this.id[l_i]){
+					
+				case 1: g_ctxt.fillStyle= "rgb(160,160,160)";
+				break;	
+				case 2: g_ctxt.fillStyle= "rgb(0,0,0)";
+				break;	
+				case 3: g_ctxt.fillStyle= "rgb(255,204,229)";
+				break;	
+				case 4: g_ctxt.fillStyle= "rgb(0,102,0)";
+				break;	
+				case 5: g_ctxt.fillStyle= "rgb(0,255,0)";
+				break;	
+				case 6: g_ctxt.fillStyle= "rgb(102,255,102)";
+				break;	
+				case 7: g_ctxt.fillStyle= "rgb(255,255,0)";
+				break;	
+				case 8: g_ctxt.fillStyle= "rgb(255,0,0)";
+				break;
+				
+				}
+				g_ctxt.fillRect(this.X[l_i],this.Y[l_i],this.size_Food,this.size_Food);
+			}
+		}
+	}	
+}
+
+var Food1= new Food_Snake();
+Food1.Initialize();
+
+function collision_Detection(){
+	var l_i=0;
+
+
+		for(l_i=0;l_i<Snake_1.visible_nodes*Snake_1.Size_of_node;l_i++)
+			{		
+				if(Math.abs(Snake_1.X[0]-Snake_2.X[l_i])<=Snake_1.Size_of_node)
+				{	if(Math.abs(Snake_1.Y[0]-Snake_2.Y[l_i])<=Snake_1.Size_of_node)
+					{	
+						g_kill_1=1;
+					}
+				}
+				if(Snake_1.X[l_i]>=640||Snake_1.X[l_i]<=0)
+					{
+						g_kill_1=1;
+						Snake_2.eat_Food+=20;
+					}
+				if(Snake_1.Y[l_i]>=480||Snake_1.Y[l_i]<=0)
+					{
+						g_kill_1=1;
+						Snake_2.eat_Food+=20;
+					}
+			}
+				
+			
+			for(l_i=0;l_i<Snake_2.visible_nodes*Snake_1.visible_nodes;l_i++)
+			{		
+				if(Math.abs(Snake_2.X[0]-Snake_1.X[l_i])<Snake_1.Size_of_node)
+				{ 	if(Math.abs(Snake_2.Y[0]-Snake_1.Y[l_i])<Snake_1.Size_of_node)
+						{
+							g_kill_2=1;
+						}
+				}
+				
+				if(Snake_2.X[l_i]>=640||Snake_2.X[l_i]<=0)
+					{
+						g_kill_2=1;
+						Snake_1.eat_Food+=20;
+					}
+				if(Snake_2.Y[l_i]>=480||Snake_2.Y[l_i]<=0)
+					{
+						g_kill_2=1;
+						Snake_1.eat_Food+=20;
+					}
+						
+			}
+		
+		
+			for(l_i=0;l_i<Food1.No_Visible_Food;l_i++)
+			{
+				if(Math.abs(Snake_1.X[0]-Food1.X[l_i])<Snake_1.Size_of_node)
+					if(Math.abs(Snake_1.Y[0]-Food1.Y[l_i])<Snake_1.Size_of_node)	
+						if(Food1.Eat[l_i]==false)
+						{
+							Food1.Eat[l_i]=true;
+							switch(Food1.id[l_i]){
+								
+							case 1: Snake_1.visible_nodes++;
+							break;
+							case 2: Snake_1.visible_nodes+=2;
+							break;
+							case 3: Snake_1.visible_nodes--;
+							break;
+							case 4: Snake_1.eat_Food+=10;
+							break;
+							case 5: Snake_1.eat_Food+=5;
+							break;
+							case 6: Snake_1.eat_Food+=1;
+							break;
+							case 7: g_speed_Snake1+=1;
+							break;
+							case 8: g_speed_Snake1-=1;
+							break;
+							}
+						}
+						
+				if(Math.abs(Snake_2.X[0]-Food1.X[l_i])<Snake_2.Size_of_node)
+					if(Math.abs(Snake_2.Y[0]-Food1.Y[l_i])<Snake_2.Size_of_node)	
+						if(Food1.Eat[l_i]==false)
+						{
+							Food1.Eat[l_i]=true;
+							switch(Food1.id[l_i]){
+								
+							case 1: Snake_2.visible_nodes++;
+							break;
+							case 2: Snake_2.visible_nodes+=2;
+							break;
+							case 3: Snake_2.visible_nodes--;
+							break;
+							case 4: Snake_2.eat_Food+=10;
+							break;
+							case 5: Snake_2.eat_Food+=5;
+							break;
+							case 6: Snake_2.eat_Food+=1;
+							break;
+							case 7: g_speed_Snake2+=1;
+							break;
+							case 8: g_speed_Snake2-=1;
+							break;
+							}
+						}
+						
+			}
+
+}
+
+function Prepare_Scoreboard(){
+	
+	var my_gradient=g_ctxt.createLinearGradient(0,0,640,480);
+	my_gradient.addColorStop(0,"rgb(52,90,52)");
+	my_gradient.addColorStop(0.5,"rgb(52,90,52)");
+	my_gradient.addColorStop(1,"rgb(238,232,170)");
+
+	g_ctxt.fillStyle=my_gradient;
+	g_ctxt.fillRect(0,480,640,70);
+	
+	g_ctxt.strokeRect(0,0,840,550);
+	g_ctxt.fillStyle = "rgb(0,0,0)";
+	
+	
+	
+	
+	g_ctxt.font = "20px Arial";
+	g_ctxt.fillText("Score  ",260,498);
+	
+	g_ctxt.font = "30px Arial";
+	g_ctxt.fillText("Snake 1 :  ",20,545);
+	
+	g_ctxt.font = "35px Times New Roman";
+	g_ctxt.fillText(Snake_1.eat_Food,170,545);
+	
+	
+	
+	g_ctxt.font = "30px Arial";
+	g_ctxt.fillText("Snake 2 :  ",340,545);
+	
+	g_ctxt.font = "35px Times New Roman";
+	g_ctxt.fillText(Snake_2.eat_Food,490,545);
+	
+	if(g_kill_1==1||g_kill_2==1)
+	{
+		g_ctxt.fillStyle = "rgb(0,0,0)";
+		g_ctxt.font = "25px Arial";
+	
+		if(Snake_1.eat_Food>Snake_2.eat_Food)
+			g_ctxt.fillText("Snake 1 Wins!!",655,370);
+		else if(Snake_2.eat_Food>Snake_1.eat_Food)
+			g_ctxt.fillText("Snake 2 Wins!!",655,370);
+		
+		else{
+			if(g_kill_1)
+				g_ctxt.fillText("Snake 2 Wins!!",655,370);
+			else if(g_kill_2)
+				g_ctxt.fillText("Snake 1 Wins!!",655,370);	
+			}
+	}
+}
+
+function prepare_Help(){
+	var my_gradient=g_ctxt.createLinearGradient(0,0,640,480);
+	my_gradient.addColorStop(0,"rgb(52,90,52)");
+	my_gradient.addColorStop(0.5,"rgb(52,90,52)");
+	my_gradient.addColorStop(1,"rgb(238,232,170)");
+	
+	g_ctxt.fillStyle=my_gradient;
+	g_ctxt.fillRect(640,0,840,550);
+	
+	g_ctxt.fillStyle = "rgb(0,0,0)";
+	g_ctxt.font = "35px Arial";
+	g_ctxt.fillText("Snake 2D",665,40);
+	
+	
+	g_ctxt.fillStyle = "rgb(160,160,160)";
+	g_ctxt.fillRect(650,80,10,10);
+	g_ctxt.fillStyle = "rgb(0,0,0)";
+	g_ctxt.font = "12px Arial";
+	g_ctxt.fillText("Increase Snake Size by 1.",665,90);
+	
+	g_ctxt.fillStyle = "rgb(0,0,0)";
+	g_ctxt.fillRect(650,100,10,10);
+	g_ctxt.font = "12px Arial";
+	g_ctxt.fillText("Increase Snake Size by 2.",665,110);
+	
+	g_ctxt.fillStyle = "rgb(255,204,229)";
+	g_ctxt.fillRect(650,120,10,10);
+	g_ctxt.fillStyle = "rgb(0,0,0)";
+	g_ctxt.font = "12px Arial";
+	g_ctxt.fillText("Decrease Snake Size by 1.",665,130);
+	
+	g_ctxt.fillStyle= "rgb(0,102,0)";
+	g_ctxt.fillRect(650,140,10,10);
+	g_ctxt.fillStyle = "rgb(0,0,0)";
+	g_ctxt.font = "12px Arial";
+	g_ctxt.fillText("Increase Score by 10.",665,150);
+	
+	
+	 g_ctxt.fillStyle= "rgb(0,255,0)";
+	g_ctxt.fillRect(650,160,10,10);
+	g_ctxt.fillStyle = "rgb(0,0,0)";
+	g_ctxt.font = "12px Arial";
+	g_ctxt.fillText("Increase Score by 5.",665,170);
+	
+	 g_ctxt.fillStyle= "rgb(102,255,102)";
+	g_ctxt.fillRect(650,180,10,10);
+	g_ctxt.fillStyle = "rgb(0,0,0)";
+	g_ctxt.font = "12px Arial";
+	g_ctxt.fillText("Increase Score by 1.",665,190);
+	
+	g_ctxt.fillStyle= "rgb(255,255,0)";
+	g_ctxt.fillRect(650,200,10,10);
+	g_ctxt.fillStyle = "rgb(0,0,0)";
+	g_ctxt.font = "12px Arial";
+	g_ctxt.fillText("Increase Snake Speed by 1.",665,210);
+	
+	g_ctxt.fillStyle= "rgb(255,0,0)";
+	g_ctxt.fillRect(650,220,10,10);
+	g_ctxt.fillStyle = "rgb(0,0,0)";
+	g_ctxt.font = "12px Arial";
+	g_ctxt.fillText("Decrease Snake Speed by 1.",665,230);
+}
+
+function update_Based_speed(){
+	var l_i=0;
+	for(l_i=0;l_i<g_speed_Snake1;l_i++)
+	{	
+		if(g_speed_Snake1>10)
+		{
+			if(l_i%10==0)
+			{
+				collision_Detection();		
+			}
+		
+		}
+		
+			Snake_1.Update_Nodes();
+			Snake_1.update_Head();	
+	
+	}
+	for(l_i=0;l_i<g_speed_Snake2;l_i++)
+		{	
+			if(g_speed_Snake2>10)
+			{
+				if(l_i%10==0)
+				{
+					collision_Detection();		
+				}
+			}
+		
+			Snake_2.Update_Nodes();
+			Snake_2.update_Head();	
+		}
+	
+	if(g_speed_Snake1<=10||g_speed_Snake2<=10){
+		collision_Detection();	
+	}
+	
+}
+
+function timer(){
+	g_time++;
+	
+	if(g_time==100)
+	{
+		Food1.Randomize_Position();
+		g_time=0;
+	}
+}
+
+function Test_Kill_Draw(){
+	if(g_kill_1==0&&g_kill_2==0)
+	{
+		update_Based_speed();
+		Snake_1.Draw_Snake();
+		Snake_2.Draw_Snake();
+		Food1.Draw_Food_Tinterval();
+	}
+	
+	
+}
+function Game_Loop(){
+	Prepare_Background_Game();
+	prepare_Help();
+	Test_Kill_Draw()
+	timer();
+	Prepare_Scoreboard();
+	
+}
+
+
+
+
+window.addEventListener("keydown",Set_Move_True);
+window.addEventListener("keyup",Set_Move_False);
+setInterval(Game_Loop,33);
+
+</script>
+
+</body>
+</html>

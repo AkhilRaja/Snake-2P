@@ -1,5 +1,7 @@
 # Snake-2P
-This is 2P version of Snake. Built using Javascript.
+http://akhilraja.github.io/Snake-2P/
+
+This is 2P version of Snake built using Javascript.
 
 
-Pure JS/
+

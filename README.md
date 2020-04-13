@@ -10,6 +10,6 @@ http://akhilraja.github.io/Snake-2P/
 3. There are various powerups/bad stuff that the snake can eat to either grow or shrink and score points.
 4. The first to die looses the game.
 
-![Alt text](assets-readme/Snake.png?raw=true "Optional Title")
+![Alt text](assets-readme/Snake.PNG?raw=true "Optional Title")
 
 
